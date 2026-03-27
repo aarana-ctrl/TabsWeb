@@ -11,7 +11,7 @@ import { spring, fadeUp } from '../components/ui/motion'
 import { formatCurrency, earningsColor, isAdmin } from '../types/models'
 
 export default function PlayerDetailView() {
-  const { tableId, playerId } = useParams<{ tableId: string; playerId: string }>()
+  const { tableId = '', playerId = '' } = useParams<{ tableId: string; playerId: string }>()
   const navigate = useNavigate()
   const app = useApp()
   const [history, setHistory] = useState<any[]>([])

@@ -16,7 +16,7 @@ import TableSettlementView from './TableSettlementView'
 import DisputeFundView from './DisputeFundView'
 
 export default function TableDetailView() {
-  const { tableId } = useParams<{ tableId: string }>()
+  const { tableId = '' } = useParams<{ tableId: string }>()
   const navigate = useNavigate()
   const app = useApp()
   const [activeSession, setActiveSession] = useState<any>(null)
