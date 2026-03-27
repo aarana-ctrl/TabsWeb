@@ -111,8 +111,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         className="w-60 fixed left-0 top-0 h-dvh bg-[var(--card)] border-r border-[var(--card2)] flex flex-col z-30"
       >
         {/* Logo */}
-        <div className="px-6 py-6 border-b border-[var(--card2)]">
-          <h1 className="text-[28px] font-bold font-display text-[var(--primary)]">Tabs</h1>
+        <div className="px-6 pt-8 pb-6 border-b border-[var(--card2)]">
+          <h1 className="text-[36px] font-bold font-display text-[var(--primary)]">Tabs</h1>
         </div>
 
         {/* Nav */}
