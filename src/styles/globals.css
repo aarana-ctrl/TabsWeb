@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS custom properties — mirrors Extensions+Theme.swift ─────────────── */
+:root {
+  --bg:          #EEEEEE;
+  --card:        #FFFFFF;
+  --card2:       #F5F5F5;
+  --primary:     #17173A;
+  --secondary:   #8C8C99;
+  --on-primary:  #FFFFFF;
+  --green:       #3DBF71;
+  --green-dark:  #2B9957;
+  --red:         #ED4242;
+  --radius-card: 24px;
+  --radius-btn:  16px;
+  --radius-pill: 9999px;
+}
+
+.dark {
+  --bg:         #0E0E0E;
+  --card:       #1C1C1E;
+  --card2:      #2C2C2E;
+  --primary:    #F2F2F7;
+  --secondary:  #8E8E93;
+  --on-primary: #17173A;
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+* { -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--primary);
+  font-family: 'Inter', 'SF Pro Text', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ── Utility classes ─────────────────────────────────────────────────────── */
+@layer utilities {
+  .bg-app          { background: var(--bg); }
+  .bg-card         { background: var(--card); }
+  .bg-card2        { background: var(--card2); }
+  .text-primary    { color: var(--primary); }
+  .text-secondary  { color: var(--secondary); }
+  .text-green      { color: var(--green); }
+  .text-red        { color: var(--red); }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius-card);
+    padding: 20px;
+  }
+
+  .font-display { font-family: 'Georgia', 'Times New Roman', serif; }
+  .font-mono    { font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace; }
+
+  /* scrollbar */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* glass material (mirrors .ultraThinMaterial) */
+  .glass {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(255,255,255,0.72);
+  }
+  .dark .glass {
+    background: rgba(28,28,30,0.82);
+  }
+
+  /* pressed scale state (mirrors ScaleButtonStyle) */
+  .btn-scale {
+    transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
+                filter 0.18s ease;
+  }
+  .btn-scale:active { transform: scale(0.965); filter: brightness(0.97); }
+}
+
+/* ── Spring keyframes (used with Framer Motion spring config) ────────────── */
+/* Named spring presets — matches iOS Extensions+Theme.swift:
+   tabsSnap:   response=0.26  damping=0.70
+   tabsSpring: response=0.36  damping=0.76
+   tabsFluid:  response=0.46  damping=0.80
+   tabsBounce: response=0.40  damping=0.60  */
+
+/* ── Scrollbar styling (desktop) ─────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--secondary);
+  border-radius: 3px;
+  opacity: 0.4;
+}
+
+/* ── Input reset ─────────────────────────────────────────────────────────── */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input { outline: none; }
