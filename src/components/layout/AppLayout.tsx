@@ -28,7 +28,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           transition={spring.std}
           className="sticky top-0 z-40 flex items-center justify-between px-6 py-4 bg-[var(--card)] border-b border-[var(--card2)]"
         >
-          <h1 className="text-[24px] font-semibold font-display text-[var(--primary)]">Tabs</h1>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Tabs" className="w-7 h-7 rounded-[8px]" />
+            <h1 className="text-[24px] font-semibold font-display text-[var(--primary)]">Tabs</h1>
+          </div>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="w-9 h-9 flex items-center justify-center rounded-full bg-[var(--card2)] text-[var(--secondary)]"
@@ -111,8 +114,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         className="w-60 fixed left-0 top-0 h-dvh bg-[var(--card)] border-r border-[var(--card2)] flex flex-col z-30"
       >
         {/* Logo */}
-        <div className="px-6 py-6 border-b border-[var(--card2)]">
-          <h1 className="text-[28px] font-bold font-display text-[var(--primary)]">Tabs</h1>
+        <div className="px-6 py-5 border-b border-[var(--card2)] flex items-center gap-3">
+          <img src="/logo.png" alt="Tabs" className="w-9 h-9 rounded-[10px]" />
+          <h1 className="text-[24px] font-bold font-display text-[var(--primary)]">Tabs</h1>
         </div>
 
         {/* Nav */}
@@ -158,7 +162,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             className="w-full flex items-center gap-3 p-3 rounded-btn hover:bg-[var(--card2)] transition-colors"
           >
             <Avatar name={app.currentUser?.name ?? 'U'} size={36} />
-            <div className="flex-1 text-left">
+            <div className="flex-1 min-w-0 text-left">
               <p className="text-[13px] font-semibold text-[var(--primary)] truncate">{app.currentUser?.name}</p>
               <p className="text-[11px] text-[var(--secondary)] truncate">{app.currentUser?.email}</p>
             </div>

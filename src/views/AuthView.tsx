@@ -37,10 +37,17 @@ export default function AuthView() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ ...spring.std, delay: 0.1 }}
-          className="space-y-2"
+          className="flex flex-col items-center space-y-4"
         >
-          <h1 className="text-[72px] font-bold font-display text-[var(--primary)]">Tabs</h1>
-          <p className="text-[18px] text-[var(--secondary)]">Your poker tracker</p>
+          <img
+            src="/logo.png"
+            alt="Tabs logo"
+            className="w-24 h-24 rounded-[22px] shadow-xl"
+          />
+          <div className="space-y-1">
+            <h1 className="text-[48px] font-bold font-display text-[var(--primary)]">Tabs</h1>
+            <p className="text-[18px] text-[var(--secondary)]">Your poker tracker</p>
+          </div>
         </motion.div>
 
         {/* Sign-in Buttons */}
