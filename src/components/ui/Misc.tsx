@@ -100,7 +100,7 @@ export function SegmentedControl<T extends string>({
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
-          className={`flex-1 py-2 rounded-[12px] text-[13px] font-semibold transition-all relative`}
+          className={`px-4 py-2 rounded-[12px] text-[13px] font-semibold transition-all relative whitespace-nowrap`}
         >
           {value === opt.value && (
             <motion.div
