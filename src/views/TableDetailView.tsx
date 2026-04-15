@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, Trash2, GitMerge } from 'lucide-react'
+import { ChevronLeft, Trash2, GitMerge, Settings } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { Card, AnimatedCard } from '../components/ui/Card'
 import { Button, IconButton } from '../components/ui/Button'
