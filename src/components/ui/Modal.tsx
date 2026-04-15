@@ -62,26 +62,30 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
             <div className="px-6 pb-8">{children}</div>
           </motion.div>
 
-          {/* Dialog (desktop ≥ md) */}
-          <motion.div
-            key="dialog-desktop"
-            initial={{ opacity: 0, scale: 0.96, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={spring.fluid}
-            className={`fixed z-50 hidden md:flex flex-col left-0 right-0 lg:left-60 top-1/2 -translate-y-1/2 mx-auto
-              ${maxW} w-full bg-[var(--bg)] rounded-sheet shadow-2xl max-h-[90dvh] overflow-y-auto no-scrollbar`}
+          {/* Dialog (desktop ≥ md) — flex centering wrapper */}
+          <div
+            key="dialog-desktop-wrap"
+            className="fixed inset-0 z-50 hidden md:flex items-center justify-center lg:pl-60 p-6"
           >
-            {title && (
-              <div className="flex items-center justify-between px-6 pt-6 pb-2">
-                <h2 className="text-[22px] font-semibold text-[var(--primary)] font-display">{title}</h2>
-                <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--card2)] text-[var(--secondary)]">
-                  <X size={14} strokeWidth={2.5} />
-                </button>
-              </div>
-            )}
-            <div className="px-6 pb-6">{children}</div>
-          </motion.div>
+            <motion.div
+              key="dialog-desktop"
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={spring.fluid}
+              className={`flex flex-col w-full ${maxW} bg-[var(--bg)] rounded-sheet shadow-2xl max-h-[90dvh] overflow-y-auto no-scrollbar`}
+            >
+              {title && (
+                <div className="flex items-center justify-between px-6 pt-6 pb-2 flex-shrink-0">
+                  <h2 className="text-[22px] font-semibold text-[var(--primary)] font-display">{title}</h2>
+                  <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--card2)] text-[var(--secondary)]">
+                    <X size={14} strokeWidth={2.5} />
+                  </button>
+                </div>
+              )}
+              <div className="px-6 pb-6 overflow-y-auto no-scrollbar">{children}</div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
