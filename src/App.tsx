@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
-import { Analytics } from '@vercel/analytics/react'
 import { useApp } from './context/AppContext'
 import { AppLayout } from './components/layout/AppLayout'
 import AuthView from './views/AuthView'
@@ -11,6 +10,7 @@ import SettingsView from './views/SettingsView'
 import PlayerDetailView from './views/PlayerDetailView'
 import { LoadingOverlay } from './components/ui/Misc'
 
+
 export default function App() {
   const app = useApp()
 
@@ -20,7 +20,6 @@ export default function App() {
 
   return (
     <AppLayout>
-      <Analytics />
       <AnimatePresence mode="wait">
         <Routes>
           <Route path="/" element={<HomeView />} />
