@@ -23,7 +23,7 @@ const firebaseConfig = {
   storageBucket:     'tabs-74415.firebasestorage.app',
   messagingSenderId: '797921172338',
   // ⚠️  Replace with your Web App ID from Firebase console (see instructions above)
-  appId:             'REPLACE_WITH_WEB_APP_ID',
+  appId:             '1:797921172338:web:7934fbee1a6c78b013dbeb',
 }
 
 export const app  = initializeApp(firebaseConfig)
