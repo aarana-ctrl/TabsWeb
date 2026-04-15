@@ -6,7 +6,7 @@ import type { User as FirebaseUser } from 'firebase/auth'
 import * as svc from '../firebase/service'
 import type {
   AppUser, PokerTable, TablePlayer, GameSession, SessionEntry,
-  DisputeResolution, TableAnalyticsStat,
+  DisputeResolution, TableAnalyticsStat, TableGuest, GuestEntry,
 } from '../types/models'
 import { buildTableAnalyticsStat } from '../types/models'
 
@@ -23,6 +23,8 @@ interface AppState {
   players:        TablePlayer[]
 
   sessionEntries: SessionEntry[]
+  guests:         TableGuest[]
+  sessionGuestEntries: GuestEntry[]
 
   errorMessage:   string | null
   isDarkMode:     boolean
@@ -67,6 +69,11 @@ interface AppActions {
   settleDisputeSplit: (table: PokerTable) => Promise<boolean>
   resetDisputeFund:   (tableId: string) => Promise<boolean>
 
+  addGuest:           (name: string, tableId: string) => Promise<TableGuest | null>
+  submitGuestEntry:   (entry: GuestEntry) => Promise<boolean>
+  fetchGuestEntries:  (guestId: string, tableId: string) => Promise<GuestEntry[]>
+  mergeGuest:         (guest: TableGuest, player: TablePlayer) => Promise<boolean>
+
   setDarkMode:       (v: boolean) => void
   clearError:        () => void
   isAdmin:           (table: PokerTable) => boolean
@@ -82,7 +89,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     currentUser: null, isLoggedIn: false, authLoading: true, authError: null,
     tables: [], isLoadingTables: false,
     selectedTable: null, players: [],
-    sessionEntries: [],
+    sessionEntries: [], guests: [], sessionGuestEntries: [],
     errorMessage: null,
     isDarkMode: localStorage.getItem('tabs_dark_mode') === 'true',
   })
@@ -97,14 +104,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [state.isDarkMode])
 
   // Firestore listeners (keep refs so we can remove them)
-  const tableUnsub   = useRef<(() => void) | null>(null)
-  const playerUnsub  = useRef<(() => void) | null>(null)
-  const entryUnsub   = useRef<(() => void) | null>(null)
+  const tableUnsub      = useRef<(() => void) | null>(null)
+  const playerUnsub     = useRef<(() => void) | null>(null)
+  const entryUnsub      = useRef<(() => void) | null>(null)
+  const guestUnsub      = useRef<(() => void) | null>(null)
+  const guestEntryUnsub = useRef<(() => void) | null>(null)
 
   const stopListeners = () => {
     tableUnsub.current?.(); tableUnsub.current = null
     playerUnsub.current?.(); playerUnsub.current = null
     entryUnsub.current?.(); entryUnsub.current = null
+    guestUnsub.current?.(); guestUnsub.current = null
+    guestEntryUnsub.current?.(); guestEntryUnsub.current = null
+    set({ guests: [], sessionGuestEntries: [] })
   }
 
   // Auth listener
@@ -224,6 +236,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       playerUnsub.current = svc.listenToPlayers(table.id, players => {
         setState(s => ({ ...s, players }))
       })
+      guestUnsub.current = svc.listenToGuests(table.id, guests => {
+        setState(s => ({ ...s, guests }))
+      })
     },
     stopListeners,
 
@@ -260,10 +275,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       entryUnsub.current = svc.listenToEntries(tableId, sessionId, entries => {
         setState(s => ({ ...s, sessionEntries: entries }))
       })
+      guestEntryUnsub.current?.()
+      guestEntryUnsub.current = svc.listenToGuestEntries(tableId, sessionId, sessionGuestEntries => {
+        setState(s => ({ ...s, sessionGuestEntries }))
+      })
     },
     clearEntryListener: () => {
       entryUnsub.current?.(); entryUnsub.current = null
-      set({ sessionEntries: [] })
+      guestEntryUnsub.current?.(); guestEntryUnsub.current = null
+      set({ sessionEntries: [], sessionGuestEntries: [] })
     },
     submitEntry: async (entry: SessionEntry) => {
       try { await svc.submitEntry(entry); return true }
@@ -372,6 +392,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     resetDisputeFund: async (tableId) => {
       try { await svc.setDisputedAmount(0, tableId); return true }
       catch (e) { set({ errorMessage: (e as Error).message }); return false }
+    },
+
+    // ── Guests ────────────────────────────────────────────────────────────────
+    addGuest: async (name, tableId) => {
+      const uid = state.currentUser?.id
+      if (!uid) return null
+      const guest: TableGuest = {
+        id: crypto.randomUUID(), tableId, name, addedBy: uid, addedAt: new Date(),
+      }
+      try { await svc.addGuest(guest); return guest }
+      catch (e) { set({ errorMessage: (e as Error).message }); return null }
+    },
+    submitGuestEntry: async (entry) => {
+      try { await svc.submitGuestEntry(entry); return true }
+      catch (e) { set({ errorMessage: (e as Error).message }); return false }
+    },
+    fetchGuestEntries: async (guestId, tableId) => {
+      try { return await svc.fetchGuestEntries(tableId, guestId) }
+      catch { return [] }
+    },
+    mergeGuest: async (guest, player) => {
+      try {
+        const entries = await svc.fetchGuestEntries(guest.tableId, guest.id)
+        await svc.mergeGuest(guest, player, entries)
+        return true
+      } catch (e) { set({ errorMessage: (e as Error).message }); return false }
     },
 
     // ── Misc ──────────────────────────────────────────────────────────────────

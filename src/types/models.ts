@@ -56,6 +56,30 @@ export interface SessionEntry {
   isManualNet: boolean
 }
 
+// Guest — non-member participant
+export interface TableGuest {
+  id: string
+  tableId: string
+  name: string
+  addedBy: string           // userId of admin
+  addedAt: Date
+  mergedToPlayerId?: string // set once merged into a real account
+}
+
+// One session's activity for a guest
+export interface GuestEntry {
+  id: string
+  guestId: string
+  tableId: string
+  sessionId: string
+  sessionDate: Date
+  buyIn: number
+  finalAmount: number
+  netAmount: number
+  isManualNet: boolean
+  submittedAt: Date
+}
+
 export type DisputeResolution = 'disputeFund' | 'splitEvenly'
 
 // Cross-table analytics (computed once, stored)

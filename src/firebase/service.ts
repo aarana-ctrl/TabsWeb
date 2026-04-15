@@ -13,7 +13,7 @@ import {
   onAuthStateChanged, type User as FirebaseUser,
 } from 'firebase/auth'
 import { db, auth } from './config'
-import type { AppUser, PokerTable, TablePlayer, GameSession, SessionEntry, SessionStatus } from '../types/models'
+import type { AppUser, PokerTable, TablePlayer, GameSession, SessionEntry, SessionStatus, TableGuest, GuestEntry } from '../types/models'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -82,14 +82,44 @@ function docToEntry(id: string, d: Record<string, unknown>): SessionEntry {
   }
 }
 
+// ─── Helpers (guests) ─────────────────────────────────────────────────────────
+
+function docToGuest(id: string, d: Record<string, unknown>): TableGuest {
+  return {
+    id,
+    tableId:          String(d.tableId ?? ''),
+    name:             String(d.name ?? ''),
+    addedBy:          String(d.addedBy ?? ''),
+    addedAt:          toDate(d.addedAt),
+    mergedToPlayerId: d.mergedToPlayerId ? String(d.mergedToPlayerId) : undefined,
+  }
+}
+
+function docToGuestEntry(id: string, d: Record<string, unknown>): GuestEntry {
+  return {
+    id,
+    guestId:     String(d.guestId ?? ''),
+    tableId:     String(d.tableId ?? ''),
+    sessionId:   String(d.sessionId ?? ''),
+    sessionDate: toDate(d.sessionDate),
+    buyIn:       Number(d.buyIn ?? 0),
+    finalAmount: Number(d.finalAmount ?? 0),
+    netAmount:   Number(d.netAmount ?? 0),
+    isManualNet: Boolean(d.isManualNet ?? false),
+    submittedAt: toDate(d.submittedAt),
+  }
+}
+
 // ─── Refs ─────────────────────────────────────────────────────────────────────
 
-const usersRef    = () => collection(db, 'users')
-const tablesRef   = () => collection(db, 'tables')
-const playersRef  = (tableId: string) => collection(db, 'tables', tableId, 'players')
-const sessionsRef = (tableId: string) => collection(db, 'tables', tableId, 'sessions')
-const entriesRef  = (tableId: string, sessionId: string) =>
+const usersRef       = () => collection(db, 'users')
+const tablesRef      = () => collection(db, 'tables')
+const playersRef     = (tableId: string) => collection(db, 'tables', tableId, 'players')
+const sessionsRef    = (tableId: string) => collection(db, 'tables', tableId, 'sessions')
+const entriesRef     = (tableId: string, sessionId: string) =>
   collection(db, 'tables', tableId, 'sessions', sessionId, 'entries')
+const guestsRef      = (tableId: string) => collection(db, 'tables', tableId, 'guests')
+const guestEntriesRef = (tableId: string) => collection(db, 'tables', tableId, 'guestEntries')
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -351,5 +381,91 @@ export async function closeTableSettlement(tableId: string, players: TablePlayer
     })
   }
   batch.update(doc(tablesRef(), tableId), { isInSettlement: false, settledPlayerIds: [] })
+  await batch.commit()
+}
+
+// ─── Guests ───────────────────────────────────────────────────────────────────
+
+export async function addGuest(guest: TableGuest): Promise<void> {
+  await setDoc(doc(guestsRef(guest.tableId), guest.id), {
+    ...guest,
+    addedAt: serverTimestamp(),
+  })
+}
+
+export async function fetchGuests(tableId: string): Promise<TableGuest[]> {
+  const snap = await getDocs(guestsRef(tableId))
+  return snap.docs.map(d => docToGuest(d.id, d.data() as Record<string, unknown>))
+}
+
+export async function submitGuestEntry(entry: GuestEntry): Promise<void> {
+  await setDoc(doc(guestEntriesRef(entry.tableId), entry.id), {
+    ...entry,
+    sessionDate: serverTimestamp(),
+    submittedAt: serverTimestamp(),
+  })
+}
+
+export async function fetchGuestEntries(tableId: string, guestId: string): Promise<GuestEntry[]> {
+  const q = query(guestEntriesRef(tableId), where('guestId', '==', guestId))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => docToGuestEntry(d.id, d.data() as Record<string, unknown>))
+}
+
+export async function fetchGuestEntriesForSession(tableId: string, sessionId: string): Promise<GuestEntry[]> {
+  const q = query(guestEntriesRef(tableId), where('sessionId', '==', sessionId))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => docToGuestEntry(d.id, d.data() as Record<string, unknown>))
+}
+
+export function listenToGuests(tableId: string, cb: (guests: TableGuest[]) => void): Unsubscribe {
+  return onSnapshot(guestsRef(tableId), snap => {
+    cb(snap.docs.map(d => docToGuest(d.id, d.data() as Record<string, unknown>)))
+  })
+}
+
+export function listenToGuestEntries(tableId: string, sessionId: string, cb: (entries: GuestEntry[]) => void): Unsubscribe {
+  const q = query(guestEntriesRef(tableId), where('sessionId', '==', sessionId))
+  return onSnapshot(q, snap => {
+    cb(snap.docs.map(d => docToGuestEntry(d.id, d.data() as Record<string, unknown>)))
+  })
+}
+
+/** Atomic batch: copies all GuestEntries as SessionEntries for the player,
+ *  increments player earnings, marks the guest as merged. */
+export async function mergeGuest(
+  guest: TableGuest,
+  player: TablePlayer,
+  guestEntries: GuestEntry[]
+): Promise<void> {
+  const batch = writeBatch(db)
+  let delta = 0
+
+  for (const ge of guestEntries) {
+    const entryRef = doc(entriesRef(ge.tableId, ge.sessionId), ge.id)
+    batch.set(entryRef, {
+      id: ge.id,
+      sessionId: ge.sessionId,
+      tableId: ge.tableId,
+      playerId: player.id,
+      playerName: player.name,
+      buyIn: ge.buyIn,
+      finalAmount: ge.finalAmount,
+      netAmount: ge.netAmount,
+      submittedAt: ge.submittedAt,
+      isManualNet: ge.isManualNet,
+    })
+    delta += ge.netAmount
+  }
+
+  batch.update(doc(playersRef(player.tableId), player.id), {
+    totalEarnings: increment(delta),
+    lifetimeEarnings: increment(delta),
+  })
+
+  batch.update(doc(guestsRef(guest.tableId), guest.id), {
+    mergedToPlayerId: player.id,
+  })
+
   await batch.commit()
 }
