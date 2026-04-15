@@ -278,6 +278,31 @@ export async function resetSession(sessionId: string, tableId: string): Promise<
   await batch.commit()
 }
 
+/** Fully discards a session: deletes all entries, all guest entries for the session,
+ *  the session document itself, and clears activeSessionId on the table. */
+export async function discardSession(sessionId: string, tableId: string): Promise<void> {
+  const [entriesSnap, guestEntriesSnap] = await Promise.all([
+    getDocs(entriesRef(tableId, sessionId)),
+    getDocs(query(guestEntriesRef(tableId), where('sessionId', '==', sessionId))),
+  ])
+
+  const batch = writeBatch(db)
+
+  // Delete all player entries
+  entriesSnap.docs.forEach(d => batch.delete(d.ref))
+
+  // Delete all guest entries for this session
+  guestEntriesSnap.docs.forEach(d => batch.delete(d.ref))
+
+  // Delete the session document
+  batch.delete(doc(sessionsRef(tableId), sessionId))
+
+  // Clear activeSessionId on the table
+  batch.update(doc(tablesRef(), tableId), { activeSessionId: null })
+
+  await batch.commit()
+}
+
 // Single atomic batch: N player earnings + session doc + table doc
 export async function settleSessionBatch(opts: {
   sessionId: string

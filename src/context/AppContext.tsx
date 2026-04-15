@@ -53,6 +53,7 @@ interface AppActions {
 
   settleSession:      (session: GameSession, entries: SessionEntry[], resolution: DisputeResolution, disputeAmount: number) => Promise<boolean>
   resetSession:       (session: GameSession) => Promise<void>
+  discardSession:     (session: GameSession) => Promise<void>
 
   fetchPlayerHistory:  (playerId: string, tableId: string) => Promise<SessionEntry[]>
   fetchMyStatsAcrossAllTables: () => Promise<TableAnalyticsStat[]>
@@ -315,6 +316,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     },
     resetSession: async (session: GameSession) => {
       try { await svc.resetSession(session.id, session.tableId) }
+      catch (e) { set({ errorMessage: (e as Error).message }) }
+    },
+    discardSession: async (session: GameSession) => {
+      try { await svc.discardSession(session.id, session.tableId) }
       catch (e) { set({ errorMessage: (e as Error).message }) }
     },
 

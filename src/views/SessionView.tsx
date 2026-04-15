@@ -48,7 +48,7 @@ export default function SessionView({ isOpen, onClose, session, onSettle }: Sess
 
   const handleDiscard = async () => {
     setIsDiscarding(true)
-    await app.resetSession(session)
+    await app.discardSession(session)
     setIsDiscarding(false)
     setShowDiscardConfirm(false)
     onClose()
