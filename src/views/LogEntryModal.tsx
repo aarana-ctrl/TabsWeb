@@ -7,18 +7,19 @@ import { Button } from '../components/ui/Button'
 import { CurrencyInput, TextInput } from '../components/ui/Input'
 import { SegmentedControl, Divider } from '../components/ui/Misc'
 import { spring, fadeUp } from '../components/ui/motion'
-import { SessionEntry } from '../types/models'
+import { SessionEntry, TablePlayer } from '../types/models'
 
 interface LogEntryModalProps {
   isOpen: boolean
   onClose: () => void
   table: any
   session: any
+  targetPlayer?: TablePlayer  // if set, admin is logging on behalf of this player
 }
 
 type EntryMode = 'split' | 'net'
 
-export default function LogEntryModal({ isOpen, onClose, table, session }: LogEntryModalProps) {
+export default function LogEntryModal({ isOpen, onClose, table, session, targetPlayer }: LogEntryModalProps) {
   const app = useApp()
   const [mode, setMode] = useState<EntryMode>('split')
   const [buyIn, setBuyIn] = useState('')
@@ -27,7 +28,7 @@ export default function LogEntryModal({ isOpen, onClose, table, session }: LogEn
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  const currentPlayer = app.currentPlayer(table.id)
+  const currentPlayer = targetPlayer ?? app.currentPlayer(table.id)
   const existingEntry = app.sessionEntries.find(e => e.playerId === currentPlayer?.id)
 
   useEffect(() => {
@@ -84,8 +85,12 @@ export default function LogEntryModal({ isOpen, onClose, table, session }: LogEn
     ? buyIn && finalAmount && computedNet !== undefined
     : netAmount !== ''
 
+  const modalTitle = targetPlayer
+    ? `Entry for ${targetPlayer.name}`
+    : existingEntry ? 'Update Entry' : 'Log Entry'
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={existingEntry ? 'Update Entry' : 'Log Entry'}>
+    <Modal isOpen={isOpen} onClose={onClose} title={modalTitle}>
       <div className="space-y-6 py-4">
         <AnimatePresence mode="wait">
           {!submitted ? (
