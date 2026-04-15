@@ -6,4 +6,16 @@ export default defineConfig({
   resolve: {
     alias: { '@': '/src' },
   },
+  optimizeDeps: {
+    include: [
+      'firebase/app',
+      'firebase/auth',
+      'firebase/firestore',
+    ],
+  },
+  build: {
+    commonjsOptions: {
+      include: [/firebase/, /node_modules/],
+    },
+  },
 })
