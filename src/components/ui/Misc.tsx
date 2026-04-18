@@ -15,11 +15,12 @@ export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   )
 }
 
-export function Badge({ children, color = 'default' }: { children: React.ReactNode; color?: 'green' | 'red' | 'orange' | 'default' }) {
+export function Badge({ children, color = 'default' }: { children: React.ReactNode; color?: 'green' | 'red' | 'orange' | 'gold' | 'default' }) {
   const map = {
     green:   'bg-tabs-green/12 text-tabs-green',
     red:     'bg-tabs-red/12 text-tabs-red',
     orange:  'bg-orange-500/12 text-orange-500',
+    gold:    'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400',
     default: 'bg-[var(--card2)] text-[var(--secondary)]',
   }
   return (

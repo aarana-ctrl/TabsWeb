@@ -1,6 +1,3 @@
-import { motion } from 'framer-motion'
-import { spring } from './motion'
-
 interface ToggleProps {
   checked: boolean
   onChange: (checked: boolean) => void
@@ -9,23 +6,21 @@ interface ToggleProps {
 
 export function Toggle({ checked, onChange, disabled = false }: ToggleProps) {
   return (
-    <motion.button
-      whileTap={{ scale: 0.95 }}
+    <button
+      type="button"
       onClick={() => !disabled && onChange(!checked)}
       disabled={disabled}
-      transition={spring.snap}
-      className={`relative inline-flex items-center w-14 h-8 rounded-full transition-colors ${
+      aria-checked={checked}
+      role="switch"
+      className={`relative inline-flex items-center w-14 h-8 rounded-full transition-colors duration-200 focus:outline-none flex-shrink-0 ${
         checked ? 'bg-tabs-green' : 'bg-[var(--card2)]'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
     >
-      <motion.div
-        layout
-        transition={spring.snap}
-        className="w-7 h-7 rounded-full bg-white shadow-lg"
-        style={{
-          marginLeft: checked ? '6px' : '3px',
-        }}
+      <span
+        className={`absolute top-[2.5px] left-0 w-[27px] h-[27px] rounded-full bg-white shadow-md transform transition-transform duration-200 ${
+          checked ? 'translate-x-[27px]' : 'translate-x-[2px]'
+        }`}
       />
-    </motion.button>
+    </button>
   )
 }

@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { spring } from './motion'
 
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string
@@ -15,24 +13,20 @@ export function TextInput({ label, error, className = '', ...rest }: TextInputPr
 
   return (
     <div className={`relative ${className}`}>
-      <div className={`bg-[var(--card)] rounded-btn px-[18px] pt-[22px] pb-[10px] transition-shadow
+      <div className={`relative bg-[var(--card)] rounded-btn px-[18px] pt-[22px] pb-[10px] transition-shadow
         ${focused ? 'ring-2 ring-[var(--primary)]/20' : ''}`}>
-        <AnimatePresence>
-          {lifted && (
-            <motion.label
-              initial={{ y: 6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 6, opacity: 0 }}
-              transition={spring.snap}
-              className="absolute top-[8px] left-[18px] text-[11px] font-medium text-[var(--secondary)]"
-            >
-              {label}
-            </motion.label>
-          )}
-        </AnimatePresence>
+        <label
+          className={`absolute left-[18px] font-medium text-[var(--secondary)] pointer-events-none transition-all duration-150 ${
+            lifted ? 'top-[8px] text-[11px]' : 'top-[50%] -translate-y-1/2 text-[15px]'
+          }`}
+        >
+          {label}
+        </label>
         <input
-          placeholder={lifted ? '' : label}
+          placeholder=""
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className="w-full bg-transparent text-[15px] text-[var(--primary)] placeholder:text-[var(--secondary)] caret-[var(--primary)]"
+          className="w-full bg-transparent text-[15px] text-[var(--primary)] caret-[var(--primary)] outline-none"
           {...rest}
         />
       </div>
@@ -60,17 +54,13 @@ export function CurrencyInput({
         ${focused ? 'ring-2 ring-[var(--primary)]/20' : ''}`}>
         <span className="pl-[18px] font-mono text-[18px] text-[var(--secondary)] select-none">$</span>
         <div className="flex-1 relative pt-[22px] pb-[10px] pr-[18px] pl-[4px]">
-          <AnimatePresence>
-            {hasValue && (
-              <motion.label
-                initial={{ y: 6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 6, opacity: 0 }}
-                transition={spring.snap}
-                className="absolute top-[8px] left-0 text-[10px] font-medium text-[var(--secondary)]"
-              >
-                {label}
-              </motion.label>
-            )}
-          </AnimatePresence>
+          <label
+            className={`absolute top-[8px] left-0 text-[10px] font-medium text-[var(--secondary)] pointer-events-none transition-opacity duration-150 ${
+              hasValue ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {label}
+          </label>
           <input
             type={allowNegative ? 'text' : 'number'}
             inputMode="decimal"

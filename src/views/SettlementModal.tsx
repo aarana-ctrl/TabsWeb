@@ -32,7 +32,11 @@ export default function SettlementModal({ isOpen, onClose, table, session, entri
     }
   }, [isOpen])
 
-  const totalNet = entries.reduce((sum, e) => sum + e.netAmount, 0)
+  // Include guest entries in the balance — their P&L affects the table offset
+  const guestEntries = app.sessionGuestEntries
+  const playerNet = entries.reduce((sum, e) => sum + e.netAmount, 0)
+  const guestNet  = guestEntries.reduce((sum, e) => sum + e.netAmount, 0)
+  const totalNet  = playerNet + guestNet
   const isBalanced = Math.abs(totalNet) < 0.01
   const imbalance = Math.abs(totalNet)
 

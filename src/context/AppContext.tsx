@@ -26,6 +26,9 @@ interface AppState {
   guests:         TableGuest[]
   sessionGuestEntries: GuestEntry[]
 
+  adminPlayerId:    string | null
+  coAdminPlayerIds: string[]
+
   errorMessage:   string | null
   isDarkMode:     boolean
 }
@@ -91,6 +94,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     tables: [], isLoadingTables: false,
     selectedTable: null, players: [],
     sessionEntries: [], guests: [], sessionGuestEntries: [],
+    adminPlayerId: null, coAdminPlayerIds: [],
     errorMessage: null,
     isDarkMode: localStorage.getItem('tabs_dark_mode') === 'true',
   })
@@ -225,7 +229,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // ── Table Detail ──────────────────────────────────────────────────────────
     selectTable: (table: PokerTable) => {
       stopListeners()
-      set({ selectedTable: table, players: [] })
+      set({ selectedTable: table, players: [], adminPlayerId: null, coAdminPlayerIds: [] })
+
+      // Resolve admin/co-admin player document IDs via userId Firestore query.
+      // This works even when player.userId is empty in older documents because
+      // fetchMyPlayer does a WHERE query — the returned player.id is always reliable.
+      svc.fetchMyPlayer(table.id, table.adminId).then(p => {
+        if (p) setState(s => ({ ...s, adminPlayerId: p.id }))
+      })
+      if (table.coAdminIds.length > 0) {
+        Promise.all(table.coAdminIds.map(uid => svc.fetchMyPlayer(table.id, uid))).then(results => {
+          setState(s => ({
+            ...s,
+            coAdminPlayerIds: results.filter((p): p is NonNullable<typeof p> => p !== null).map(p => p.id),
+          }))
+        })
+      }
+
       tableUnsub.current = svc.listenToTable(table.id, t => {
         if (!t) return
         setState(s => ({

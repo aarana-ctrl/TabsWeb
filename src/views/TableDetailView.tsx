@@ -85,6 +85,20 @@ export default function TableDetailView() {
   const playerCount = app.players.length
   const sortedPlayers = [...app.players].sort((a, b) => b.totalEarnings - a.totalEarnings)
 
+  // Identify admin/co-admin player rows using pre-resolved player document IDs.
+  // AppContext resolves these via targeted Firestore queries so they work even
+  // when player.userId is empty in older Firestore documents.
+  function playerRole(player: any): 'admin' | 'coadmin' | null {
+    if (app.adminPlayerId && player.id === app.adminPlayerId)          return 'admin'
+    if (app.coAdminPlayerIds.includes(player.id))                      return 'coadmin'
+    // Fallback: userId comparison for newly-created docs that always have it
+    if (player.userId) {
+      if (player.userId === app.selectedTable!.adminId)                return 'admin'
+      if (app.selectedTable!.coAdminIds.includes(player.userId))       return 'coadmin'
+    }
+    return null
+  }
+
   return (
     <div className="pb-8">
       {/* Header */}
@@ -222,7 +236,9 @@ export default function TableDetailView() {
               <p className="text-center text-[var(--secondary)] py-6">No players yet</p>
             ) : (
               <div className="space-y-1 -mx-5 -my-5">
-                {sortedPlayers.map((player, idx) => (
+                {sortedPlayers.map((player, idx) => {
+                  const role = playerRole(player)
+                  return (
                   <motion.div
                     key={player.id}
                     initial={fadeUp.initial}
@@ -234,15 +250,18 @@ export default function TableDetailView() {
                   >
                     <span className="text-[13px] font-bold text-[var(--secondary)] w-6">#{idx + 1}</span>
                     <Avatar name={player.name} size={36} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-semibold text-[var(--primary)]">{player.name}</p>
+                    <div className="flex-1 min-w-0 flex items-center gap-2">
+                      <p className="text-[14px] font-semibold text-[var(--primary)] truncate">{player.name}</p>
+                      {role === 'admin'   && <Badge color="gold">Admin</Badge>}
+                      {role === 'coadmin' && <Badge color="gold">Co-Admin</Badge>}
                     </div>
                     <p className={`text-[15px] font-semibold font-mono ${earningsColor(player.totalEarnings)}`}>
                       {formatCurrency(player.totalEarnings, true)}
                     </p>
                     <ChevronLeft size={16} className="text-[var(--secondary)] opacity-0 group-hover:opacity-100 -rotate-90 transition-opacity" />
                   </motion.div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </Card>
