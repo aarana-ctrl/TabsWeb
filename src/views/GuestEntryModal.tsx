@@ -157,8 +157,9 @@ export default function GuestEntryModal({ isOpen, onClose, table, session }: Pro
                 {isCreatingNew && (
                   <div className="px-4 py-2">
                     <TextInput
+                      label=""
                       value={newGuestName}
-                      onChange={setNewGuestName}
+                      onChange={e => setNewGuestName(e.target.value)}
                       placeholder="Guest name"
                       autoFocus
                     />

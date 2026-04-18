@@ -38,7 +38,10 @@ export default function SessionView({ isOpen, onClose, session, onSettle }: Sess
   const submittedEntries = app.sessionEntries.filter(e => e.netAmount !== undefined)
   const pendingPlayers = app.players.filter(p => !submittedEntries.find(e => e.playerId === p.id))
 
-  const totalNet = submittedEntries.reduce((sum, e) => sum + e.netAmount, 0)
+  // Include guest entries — their P&L affects the table balance
+  const playerNet = submittedEntries.reduce((sum, e) => sum + e.netAmount, 0)
+  const guestNet  = app.sessionGuestEntries.reduce((sum, e) => sum + e.netAmount, 0)
+  const totalNet  = playerNet + guestNet
   const isBalanced = Math.abs(totalNet) < 0.01
   const imbalance = Math.abs(totalNet)
 

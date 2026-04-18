@@ -75,9 +75,9 @@ export function EmptyState({ icon, title, subtitle }: { icon: React.ReactNode; t
   )
 }
 
-export function SectionLabel({ children }: { children: React.ReactNode }) {
+export function SectionLabel({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <p className="text-[11px] font-semibold text-[var(--secondary)] tracking-widest uppercase mb-2 px-1">
+    <p className={`text-[11px] font-semibold text-[var(--secondary)] tracking-widest uppercase mb-2 px-1 ${className}`}>
       {children}
     </p>
   )

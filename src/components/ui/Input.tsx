@@ -46,13 +46,40 @@ export function CurrencyInput({
   className?: string
 }) {
   const [focused, setFocused] = useState(false)
-  const hasValue = value.length > 0
+  const hasValue = value.length > 0 && value !== '-'
+  const isNegative = value.startsWith('-')
+
+  // Toggle between positive and negative without losing the numeric portion
+  const toggleSign = () => {
+    const num = value.replace(/^-/, '')
+    onChange(isNegative ? num : '-' + num)
+  }
 
   return (
     <div className={`relative ${className}`}>
       <div className={`flex items-center bg-[var(--card)] rounded-btn transition-shadow
         ${focused ? 'ring-2 ring-[var(--primary)]/20' : ''}`}>
-        <span className="pl-[18px] font-mono text-[18px] text-[var(--secondary)] select-none">$</span>
+
+        {/* ± toggle — shown when allowNegative, replaces static $ prefix */}
+        {allowNegative ? (
+          <button
+            type="button"
+            onMouseDown={e => e.preventDefault()} // keep input focused
+            onClick={toggleSign}
+            className={`pl-[14px] pr-[6px] font-mono text-[20px] select-none transition-colors ${
+              isNegative ? 'text-tabs-red' : 'text-[var(--secondary)]'
+            }`}
+          >
+            {isNegative ? '−' : '+'}
+          </button>
+        ) : (
+          <span className="pl-[18px] font-mono text-[18px] text-[var(--secondary)] select-none">$</span>
+        )}
+
+        {allowNegative && (
+          <span className="font-mono text-[20px] text-[var(--secondary)] select-none pr-[2px]">$</span>
+        )}
+
         <div className="flex-1 relative pt-[22px] pb-[10px] pr-[18px] pl-[4px]">
           <label
             className={`absolute top-[8px] left-0 text-[10px] font-medium text-[var(--secondary)] pointer-events-none transition-opacity duration-150 ${
@@ -62,14 +89,18 @@ export function CurrencyInput({
             {label}
           </label>
           <input
-            type={allowNegative ? 'text' : 'number'}
+            type="number"
             inputMode="decimal"
+            min={allowNegative ? undefined : 0}
             placeholder={hasValue ? '' : '0'}
-            value={value}
-            onChange={e => onChange(e.target.value)}
+            value={value.replace(/^-/, '')} // always show the absolute value; sign shown by button
+            onChange={e => {
+              const raw = e.target.value
+              onChange(isNegative && raw ? '-' + raw : raw)
+            }}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            className="w-full bg-transparent font-mono text-[20px] text-[var(--primary)] placeholder:text-[var(--secondary)]/50 caret-[var(--primary)]"
+            className="w-full bg-transparent font-mono text-[20px] text-[var(--primary)] placeholder:text-[var(--secondary)]/50 caret-[var(--primary)] outline-none"
           />
         </div>
       </div>
